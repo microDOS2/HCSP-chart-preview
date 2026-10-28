@@ -21,6 +21,7 @@ nav a{display:block;color:var(--ink-md);text-decoration:none;font-size:11px;lett
 nav a:hover{color:var(--blue);border-left-color:var(--blue);background:#fff}
 main{flex:1;min-width:0;padding:26px 30px 80px}
 section{margin-bottom:46px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:22px 24px}
+section[data-3d]{min-height:600px}
 h2.sec{font-size:19px;margin:0 0 12px}
 .note{color:var(--ink-lo);font-size:13px;margin:-6px 0 16px;font-family:Menlo,Consolas,monospace;letter-spacing:.04em}
 @media(max-width:1100px){nav{display:none}.layout{display:block}main{padding:16px}}
@@ -45,14 +46,14 @@ h2.sec{font-size:19px;margin:0 0 12px}
   <a href="#host-scenarios-3d">10 · The living site + materials</a>
 </nav>
 <main>
-  <section id="host-c3-ranking"><h2 class="sec">1 · The 3D bar city — industry ranking</h2></section>
-  <section id="host-c3-savings"><h2 class="sec">2 · Cost towers — who pays the most</h2></section>
-  <section id="host-c3-crossover"><h2 class="sec">3 · The energy surface — which feeds power themselves</h2></section>
-  <section id="host-c3-heat"><h2 class="sec">4 · Heat flow in 3D</h2></section>
-  <section id="host-scale-3d"><h2 class="sec">5 · Four rising platforms — the scale ladder</h2></section>
-  <section id="host-payback-3d"><h2 class="sec">6 · Savings bars with counters</h2></section>
+  <section data-3d id="host-c3-ranking"><h2 class="sec">1 · The 3D bar city — industry ranking</h2></section>
+  <section data-3d id="host-c3-savings"><h2 class="sec">2 · Cost towers — who pays the most</h2></section>
+  <section data-3d id="host-c3-crossover"><h2 class="sec">3 · The energy surface — which feeds power themselves</h2></section>
+  <section data-3d id="host-c3-heat"><h2 class="sec">4 · Heat flow in 3D</h2></section>
+  <section data-3d id="host-scale-3d"><h2 class="sec">5 · Four rising platforms — the scale ladder</h2></section>
+  <section data-3d id="host-payback-3d"><h2 class="sec">6 · Savings bars with counters</h2></section>
   <section id="host-other"><h2 class="sec">7–9 · Competitors and deadlines</h2></section>
-  <section id="host-scenarios-3d"><h2 class="sec">10 · The living site + materials separation</h2></section>
+  <section data-3d id="host-scenarios-3d"><h2 class="sec">10 · The living site + materials separation</h2></section>
 </main>
 </div>
 <script src="vendor/echarts.min.js"></script>
@@ -69,14 +70,29 @@ h2.sec{font-size:19px;margin:0 0 12px}
 <script src="js/c3_scenarios.js"></script>
 <script src="js/chart_other.js"></script>
 <script>
-  Chart3DRanking.render(document.getElementById("host-c3-ranking"));
-  Chart3DSavings.render(document.getElementById("host-c3-savings"));
-  Chart3DCrossover.render(document.getElementById("host-c3-crossover"));
-  Chart3DHeat.render(document.getElementById("host-c3-heat"));
-  C3Scale.render(document.getElementById("host-scale-3d"));
-  C3Payback.render(document.getElementById("host-payback-3d"));
-  C3Scenarios.render(document.getElementById("host-scenarios-3d"));
-  ChartOther.render(document.getElementById("host-other"));
+  // Lazy-start 3D scenes only when their section approaches the viewport,
+  // so all nine scenes never initialize at once on slower devices.
+  function lazy3D(id, fn){
+    const el = document.getElementById(id);
+    if(!el) return;
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          io.disconnect();
+          try { fn(el); } catch(err){ console.warn("3D init failed for", id, err); }
+        }
+      });
+    }, {rootMargin:"450px"});
+    io.observe(el);
+  }
+  lazy3D("host-c3-ranking", el => Chart3DRanking.render(el));
+  lazy3D("host-c3-savings", el => Chart3DSavings.render(el));
+  lazy3D("host-c3-crossover", el => Chart3DCrossover.render(el));
+  lazy3D("host-c3-heat", el => Chart3DHeat.render(el));
+  lazy3D("host-scale-3d", el => C3Scale.render(el));
+  lazy3D("host-payback-3d", el => C3Payback.render(el));
+  lazy3D("host-scenarios-3d", el => C3Scenarios.render(el));
+  lazy3D("host-other", el => ChartOther.render(el));
 </script>
 </body>
 </html>
