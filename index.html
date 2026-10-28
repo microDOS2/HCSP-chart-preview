@@ -12,9 +12,13 @@
 :root{--paper:#fff;--ink:#051c2c;--ink-md:#42566a;--ink-lo:#5b6f82;--blue:#2251ff;--line:#dfe6ec}
 *{box-sizing:border-box}
 body{margin:0;font-family:Georgia,'Times New Roman',serif;color:var(--ink);background:#f7f8f9}
-.top{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:14px 22px}
+.top{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:14px 22px;display:flex;align-items:flex-start;gap:18px}
+.top .top-text{flex:1;min-width:0}
 .top h1{margin:0;font-size:22px;letter-spacing:-.01em}
 .top p{margin:6px 0 0;color:var(--ink-md);font-size:14px}
+#lite-toggle{flex:0 0 auto;margin-top:4px;font-family:Menlo,Consolas,monospace;font-size:12px;padding:7px 14px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink-md);cursor:pointer}
+#lite-toggle:hover{border-color:var(--blue);color:var(--blue)}
+#lite-toggle[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
 .layout{display:flex;align-items:flex-start;gap:0}
 nav{position:sticky;top:64px;width:250px;flex:0 0 250px;padding:18px 14px;font-family:Menlo,Consolas,monospace}
 nav a{display:block;color:var(--ink-md);text-decoration:none;font-size:11px;letter-spacing:.06em;padding:9px 10px;border-left:3px solid transparent;line-height:1.5}
@@ -29,8 +33,12 @@ h2.sec{font-size:19px;margin:0 0 12px}
 </head>
 <body>
 <header class="top">
-  <h1>HCSP Interactive 3D Charts — Preview</h1>
-  <p>Real 3D, real animation: auto-playing scenes with pause controls. Hover for facts, click for the full story, or use the data-table view. This is a preview only — the main site is unchanged.</p>
+  <div class="top-text">
+    <h1>HCSP Interactive 3D Charts — Preview</h1>
+    <p>Real 3D, real animation: auto-playing scenes with pause controls. Hover for facts, click for the full story, or use the data-table view. This is a preview only — the main site is unchanged.</p>
+  </div>
+  <button id="lite-toggle" type="button" aria-pressed="false"
+    title="Lite mode: freezes all 3D animation and renders at low resolution — for slow devices. Remembered on this device.">Lite mode: off</button>
 </header>
 <div class="layout">
 <nav>
@@ -38,7 +46,7 @@ h2.sec{font-size:19px;margin:0 0 12px}
   <a href="#host-c3-savings">2 · Cost towers</a>
   <a href="#host-c3-crossover">3 · The energy surface</a>
   <a href="#host-c3-heat">4 · Heat flow in 3D</a>
-  <a href="#host-scale-3d">5 · Four rising platforms</a>
+  <a href="#host-scale-3d">5 · The scale ladder — size comparison</a>
   <a href="#host-payback-3d">6 · Savings bars with counters</a>
   <a href="#ot-panel-destiny">7 · Who survived and who failed</a>
   <a href="#ot-panel-scalegap">8 · The small-facility gap</a>
@@ -50,7 +58,7 @@ h2.sec{font-size:19px;margin:0 0 12px}
   <section data-3d id="host-c3-savings"><h2 class="sec">2 · Cost towers — who pays the most</h2></section>
   <section data-3d id="host-c3-crossover"><h2 class="sec">3 · The energy surface — which feeds power themselves</h2></section>
   <section data-3d id="host-c3-heat"><h2 class="sec">4 · Heat flow in 3D</h2></section>
-  <section data-3d id="host-scale-3d"><h2 class="sec">5 · Four rising platforms — the scale ladder</h2></section>
+  <section data-3d id="host-scale-3d"><h2 class="sec">5 · The scale ladder — four plant sizes at real-world scale</h2></section>
   <section data-3d id="host-payback-3d"><h2 class="sec">6 · Savings bars with counters</h2></section>
   <section id="host-other"><h2 class="sec">7–9 · Competitors and deadlines</h2></section>
   <section data-3d id="host-scenarios-3d"><h2 class="sec">10 · The living site + materials separation</h2></section>
@@ -65,34 +73,112 @@ h2.sec{font-size:19px;margin:0 0 12px}
 <script src="js/c3_savings.js"></script>
 <script src="js/c3_crossover.js"></script>
 <script src="js/c3_heat.js"></script>
-<script src="js/c3_scale.js"></script>
+<script src="js/scale_explorer.js"></script>
 <script src="js/c3_payback.js"></script>
 <script src="js/c3_scenarios.js"></script>
 <script src="js/chart_other.js"></script>
 <script>
-  // Lazy-start 3D scenes only when their section approaches the viewport,
-  // so all nine scenes never initialize at once on slower devices.
-  function lazy3D(id, fn){
+(function(){
+  "use strict";
+  /* ══ Lite mode (persisted): html.reader forces every module's still mode,
+     and devicePixelRatio is capped to 1 so scenes init at low resolution ══ */
+  var LITE_KEY = "hcsp-lite";
+  var nativeDPR = window.devicePixelRatio || 1;
+  var liteOn = false;
+  try { liteOn = localStorage.getItem(LITE_KEY) === "1"; } catch (e) {}
+  function capDPR(on) {
+    try {
+      Object.defineProperty(window, "devicePixelRatio",
+        { configurable: true, get: function () { return on ? 1 : nativeDPR; } });
+    } catch (e) {}
+  }
+  var liteBtn = document.getElementById("lite-toggle");
+
+  /* ══ Scene manager: ONE active 3D scene at a time + heavy-pause far offscreen ══ */
+  var sceneEls = [], activeEl = null;
+  function pauseBtnOf(el) {
+    return el ? el.querySelector('[data-act="pause"], .c3s-pause, .c3p-pause, .c3x-pause') : null;
+  }
+  // heavy-pause: stop animation state (not just skip rendering). tag records
+  // WHO paused it ("far" scroll-away or "lite") so we only auto-resume our own.
+  function heavyPause(el, tag) {
+    var b = pauseBtnOf(el);
+    if (b && b.getAttribute("aria-pressed") !== "true") {
+      b.click();
+      el._hcspAutoPaused = tag;
+    }
+  }
+  function heavyResume(el, tag) {
+    var b = pauseBtnOf(el);
+    if (b && el._hcspAutoPaused === tag && b.getAttribute("aria-pressed") === "true") b.click();
+    if (el && el._hcspAutoPaused === tag) el._hcspAutoPaused = null;
+  }
+  function applyLite(on) {
+    liteOn = on;
+    // every 3D module reads html.reader each frame → all scenes go static now
+    document.documentElement.classList.toggle("reader", on);
+    capDPR(on); // scenes initialized from now on render at DPR 1
+    if (liteBtn) {
+      liteBtn.setAttribute("aria-pressed", String(on));
+      liteBtn.textContent = "Lite mode: " + (on ? "on" : "off");
+    }
+    try { localStorage.setItem(LITE_KEY, on ? "1" : "0"); } catch (e) {}
+    // belt & braces: also press each running scene's own pause / release it
+    sceneEls.forEach(function (el) {
+      if (!el._hcspInited) return;
+      if (on) heavyPause(el, "lite"); else heavyResume(el, "lite");
+    });
+  }
+  if (liteBtn) liteBtn.addEventListener("click", function () { applyLite(!liteOn); });
+  if (liteOn) applyLite(true);
+
+  /* Lazy-start 3D scenes only when their section approaches the viewport,
+     and pause the previously active scene: only one scene runs at a time. */
+  function lazy3D(id, fn) {
     const el = document.getElementById(id);
-    if(!el) return;
-    const io = new IntersectionObserver((entries)=>{
-      entries.forEach(e=>{
-        if(e.isIntersecting){
+    if (!el) return;
+    sceneEls.push(el);
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
           io.disconnect();
-          try { fn(el); } catch(err){ console.warn("3D init failed for", id, err); }
+          if (activeEl && activeEl !== el) heavyPause(activeEl, "active");
+          activeEl = el;
+          el._hcspInited = true;
+          try { fn(el); } catch (err) { console.warn("3D init failed for", id, err); }
         }
       });
-    }, {rootMargin:"450px"});
+    }, { rootMargin: "450px" });
     io.observe(el);
+    // heavy-pause scenes that drift FAR offscreen (beyond the module's own
+    // near-viewport render pause); resume only if we were the ones pausing.
+    const farIO = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (!el._hcspInited) return;
+        if (!e.isIntersecting) heavyPause(el, "far");
+        else heavyResume(el, "far");
+      });
+    }, { rootMargin: "1200px" });
+    farIO.observe(el);
   }
+  // a scene coming alive outside lazy3D (e.g. the scale module's 3D view,
+  // which is created on demand by its toggle) claims the single active slot
+  document.addEventListener("hcsp:scene-active", function (ev) {
+    var el = ev.detail && ev.detail.el;
+    if (!el) return;
+    if (activeEl && activeEl !== el) heavyPause(activeEl, "active");
+    activeEl = el;
+  });
+
   lazy3D("host-c3-ranking", el => Chart3DRanking.render(el));
   lazy3D("host-c3-savings", el => Chart3DSavings.render(el));
   lazy3D("host-c3-crossover", el => Chart3DCrossover.render(el));
   lazy3D("host-c3-heat", el => Chart3DHeat.render(el));
-  lazy3D("host-scale-3d", el => C3Scale.render(el));
+  lazy3D("host-scale-3d", el => ScaleExplorer.render(el));
   lazy3D("host-payback-3d", el => C3Payback.render(el));
   lazy3D("host-scenarios-3d", el => C3Scenarios.render(el));
   lazy3D("host-other", el => ChartOther.render(el));
+})();
 </script>
 </body>
 </html>
