@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HCSP Interactive Charts — Preview</title>
+<link rel="stylesheet" href="css/ranking.css">
+<link rel="stylesheet" href="css/energy.css">
+<link rel="stylesheet" href="css/other.css">
+<style>
+:root{--paper:#fff;--ink:#051c2c;--ink-md:#42566a;--ink-lo:#5b6f82;--blue:#2251ff;--line:#dfe6ec}
+*{box-sizing:border-box}
+body{margin:0;font-family:Georgia,'Times New Roman',serif;color:var(--ink);background:#f7f8f9}
+.top{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:14px 22px}
+.top h1{margin:0;font-size:22px;letter-spacing:-.01em}
+.top p{margin:6px 0 0;color:var(--ink-md);font-size:14px}
+.layout{display:flex;align-items:flex-start;gap:0}
+nav{position:sticky;top:64px;width:250px;flex:0 0 250px;padding:18px 14px;font-family:Menlo,Consolas,monospace}
+nav a{display:block;color:var(--ink-md);text-decoration:none;font-size:11px;letter-spacing:.06em;padding:9px 10px;border-left:3px solid transparent;line-height:1.5}
+nav a:hover{color:var(--blue);border-left-color:var(--blue);background:#fff}
+main{flex:1;min-width:0;padding:26px 30px 80px}
+section{margin-bottom:46px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:22px 24px}
+h2.sec{font-size:19px;margin:0 0 12px}
+.note{color:var(--ink-lo);font-size:13px;margin:-6px 0 16px;font-family:Menlo,Consolas,monospace;letter-spacing:.04em}
+@media(max-width:1100px){nav{display:none}.layout{display:block}main{padding:16px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>HCSP Interactive Charts — Preview</h1>
+  <p>Every chart, every option: hover for facts, click for the full story (side panel or expand-below), search, and a sortable table view. This is a preview only — the main site is unchanged.</p>
+</header>
+<div class="layout">
+<nav>
+  <a href="#host-ranking">1 · The industry ranking</a>
+  <a href="#host-savings">2 · Who pays the most ($/gal)</a>
+  <a href="#host-crossover">3 · Which feeds make their own energy</a>
+  <a href="#host-trigen">4 · Where the heat goes</a>
+  <a href="#host-scale">5 · The scale ladder</a>
+  <a href="#host-payback">6 · Gross savings by industry</a>
+  <a href="#ot-panel-destiny">7 · Who survived and who failed</a>
+  <a href="#ot-panel-scalegap">8 · The small-facility gap</a>
+  <a href="#ot-panel-calendar">9 · Key dates ahead</a>
+  <a href="#ot-panel-scenarios">10 · Six ways to sell the heat + materials</a>
+</nav>
+<main>
+  <section id="host-ranking" data-chart="ranking"><h2 class="sec">1 · The industry ranking</h2></section>
+  <section id="host-savings" data-chart="savings"><h2 class="sec">2 · Who pays the most to dispose of waste</h2></section>
+  <section id="host-crossover" data-chart="crossover"><h2 class="sec">3 · Which feeds make their own energy</h2></section>
+  <section id="host-trigen" data-chart="trigen"><h2 class="sec">4 · Where the heat goes</h2></section>
+  <section id="host-scale" data-chart="scale"><h2 class="sec">5 · The scale ladder</h2></section>
+  <section id="host-payback" data-chart="payback"><h2 class="sec">6 · Gross savings by industry</h2></section>
+  <section id="host-other"><h2 class="sec">7–10 · Competitors, deadlines, scenarios &amp; materials</h2></section>
+</main>
+</div>
+<script src="vendor/echarts.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/sources.js"></script>
+<script src="js/chart_ranking.js"></script>
+<script src="js/chart_energy.js"></script>
+<script src="js/chart_other.js"></script>
+<script>
+  ChartRanking.render(document.getElementById("host-ranking"), { chart: "ranking" });
+  ChartRanking.render(document.getElementById("host-savings"), { chart: "savings" });
+  ChartEnergy.render(document.getElementById("host-crossover"), { charts: ["crossover"] });
+  ChartEnergy.render(document.getElementById("host-trigen"), { charts: ["trigen"] });
+  ChartEnergy.render(document.getElementById("host-scale"), { charts: ["scale"] });
+  ChartEnergy.render(document.getElementById("host-payback"), { charts: ["payback"] });
+  ChartOther.render(document.getElementById("host-other"));
+</script>
+</body>
+</html>
