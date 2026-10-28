@@ -3,10 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HCSP Interactive Charts — Preview</title>
+<title>HCSP Interactive 3D Charts — Preview</title>
 <link rel="stylesheet" href="css/ranking.css">
 <link rel="stylesheet" href="css/energy.css">
 <link rel="stylesheet" href="css/other.css">
+<link rel="stylesheet" href="css/c3.css">
 <style>
 :root{--paper:#fff;--ink:#051c2c;--ink-md:#42566a;--ink-lo:#5b6f82;--blue:#2251ff;--line:#dfe6ec}
 *{box-sizing:border-box}
@@ -27,45 +28,54 @@ h2.sec{font-size:19px;margin:0 0 12px}
 </head>
 <body>
 <header class="top">
-  <h1>HCSP Interactive Charts — Preview</h1>
-  <p>Every chart, every option: hover for facts, click for the full story (side panel or expand-below), search, and a sortable table view. This is a preview only — the main site is unchanged.</p>
+  <h1>HCSP Interactive 3D Charts — Preview</h1>
+  <p>Real 3D, real animation: auto-playing scenes with pause controls. Hover for facts, click for the full story, or use the data-table view. This is a preview only — the main site is unchanged.</p>
 </header>
 <div class="layout">
 <nav>
-  <a href="#host-ranking">1 · The industry ranking</a>
-  <a href="#host-savings">2 · Who pays the most ($/gal)</a>
-  <a href="#host-crossover">3 · Which feeds make their own energy</a>
-  <a href="#host-trigen">4 · Where the heat goes</a>
-  <a href="#host-scale">5 · The scale ladder</a>
-  <a href="#host-payback">6 · Gross savings by industry</a>
+  <a href="#host-c3-ranking">1 · The 3D bar city</a>
+  <a href="#host-c3-savings">2 · Cost towers</a>
+  <a href="#host-c3-crossover">3 · The energy surface</a>
+  <a href="#host-c3-heat">4 · Heat flow in 3D</a>
+  <a href="#host-scale-3d">5 · Four rising platforms</a>
+  <a href="#host-payback-3d">6 · Savings bars with counters</a>
   <a href="#ot-panel-destiny">7 · Who survived and who failed</a>
   <a href="#ot-panel-scalegap">8 · The small-facility gap</a>
   <a href="#ot-panel-calendar">9 · Key dates ahead</a>
-  <a href="#ot-panel-scenarios">10 · Six ways to sell the heat + materials</a>
+  <a href="#host-scenarios-3d">10 · The living site + materials</a>
 </nav>
 <main>
-  <section id="host-ranking" data-chart="ranking"><h2 class="sec">1 · The industry ranking</h2></section>
-  <section id="host-savings" data-chart="savings"><h2 class="sec">2 · Who pays the most to dispose of waste</h2></section>
-  <section id="host-crossover" data-chart="crossover"><h2 class="sec">3 · Which feeds make their own energy</h2></section>
-  <section id="host-trigen" data-chart="trigen"><h2 class="sec">4 · Where the heat goes</h2></section>
-  <section id="host-scale" data-chart="scale"><h2 class="sec">5 · The scale ladder</h2></section>
-  <section id="host-payback" data-chart="payback"><h2 class="sec">6 · Gross savings by industry</h2></section>
-  <section id="host-other"><h2 class="sec">7–10 · Competitors, deadlines, scenarios &amp; materials</h2></section>
+  <section id="host-c3-ranking"><h2 class="sec">1 · The 3D bar city — industry ranking</h2></section>
+  <section id="host-c3-savings"><h2 class="sec">2 · Cost towers — who pays the most</h2></section>
+  <section id="host-c3-crossover"><h2 class="sec">3 · The energy surface — which feeds power themselves</h2></section>
+  <section id="host-c3-heat"><h2 class="sec">4 · Heat flow in 3D</h2></section>
+  <section id="host-scale-3d"><h2 class="sec">5 · Four rising platforms — the scale ladder</h2></section>
+  <section id="host-payback-3d"><h2 class="sec">6 · Savings bars with counters</h2></section>
+  <section id="host-other"><h2 class="sec">7–9 · Competitors and deadlines</h2></section>
+  <section id="host-scenarios-3d"><h2 class="sec">10 · The living site + materials separation</h2></section>
 </main>
 </div>
 <script src="vendor/echarts.min.js"></script>
+<script src="vendor/three.min.js"></script>
+<script src="vendor/OrbitControls.js"></script>
 <script src="js/data.js"></script>
 <script src="js/sources.js"></script>
-<script src="js/chart_ranking.js"></script>
-<script src="js/chart_energy.js"></script>
+<script src="js/c3_ranking.js"></script>
+<script src="js/c3_savings.js"></script>
+<script src="js/c3_crossover.js"></script>
+<script src="js/c3_heat.js"></script>
+<script src="js/c3_scale.js"></script>
+<script src="js/c3_payback.js"></script>
+<script src="js/c3_scenarios.js"></script>
 <script src="js/chart_other.js"></script>
 <script>
-  ChartRanking.render(document.getElementById("host-ranking"), { chart: "ranking" });
-  ChartRanking.render(document.getElementById("host-savings"), { chart: "savings" });
-  ChartEnergy.render(document.getElementById("host-crossover"), { charts: ["crossover"] });
-  ChartEnergy.render(document.getElementById("host-trigen"), { charts: ["trigen"] });
-  ChartEnergy.render(document.getElementById("host-scale"), { charts: ["scale"] });
-  ChartEnergy.render(document.getElementById("host-payback"), { charts: ["payback"] });
+  Chart3DRanking.render(document.getElementById("host-c3-ranking"));
+  Chart3DSavings.render(document.getElementById("host-c3-savings"));
+  Chart3DCrossover.render(document.getElementById("host-c3-crossover"));
+  Chart3DHeat.render(document.getElementById("host-c3-heat"));
+  C3Scale.render(document.getElementById("host-scale-3d"));
+  C3Payback.render(document.getElementById("host-payback-3d"));
+  C3Scenarios.render(document.getElementById("host-scenarios-3d"));
   ChartOther.render(document.getElementById("host-other"));
 </script>
 </body>
